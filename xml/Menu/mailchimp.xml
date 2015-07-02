@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/mailchimp/apikeyregister</path>
+    <page_callback>CRM_Mailchimp_Form_ApiKeyRegister</page_callback>
+    <title>MailChimp Settings</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+</menu>
