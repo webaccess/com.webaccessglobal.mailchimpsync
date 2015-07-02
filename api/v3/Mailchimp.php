@@ -4,9 +4,13 @@ function civicrm_api3_mailchimp_synchronize( $params ) {
   $apiKey = CRM_Core_BAO_Setting::getItem('MailChimp Preferences',
                                             'api_key', NULL, FALSE
                                             );
+  $tagsCount = civicrm_api3('Tag', 'getcount', array(
+                 'sequential' => 1,
+               ));
   $tagsGet = civicrm_api3('Tag', 'get', array(
               'sequential' => 1,
-            ));
+              'rowCount' => $tagsCount,
+             ));
   foreach($tagsGet['values'] as $tagIds => $tagsValues) {
     $tags[$tagsValues['id']] = $tagsValues['name'];
   }
@@ -20,8 +24,12 @@ function civicrm_api3_mailchimp_synchronize( $params ) {
                       'name' => $listsDetails['name'],
                     ));
     }
+    $tagsCount = civicrm_api3('Tag', 'getcount', array(
+                 'sequential' => 1,
+               ));
     $tagsGet = civicrm_api3('Tag', 'get', array(
                  'sequential' => 1,
+                 'rowCount' => $tagsCount,
                ));
     foreach($tagsGet['values'] as $tagIds => $tagsValues) {
       $tags[$tagsValues['id']] = $tagsValues['name'];
