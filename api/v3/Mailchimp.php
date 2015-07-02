@@ -1,0 +1,57 @@
+<?php
+function civicrm_api3_mailchimp_synchronize( $params ) {
+  $return = $tags = $createdContact = array();
+  $apiKey = CRM_Core_BAO_Setting::getItem('MailChimp Preferences',
+                                            'api_key', NULL, FALSE
+                                            );
+  $tagsGet = civicrm_api3('Tag', 'get', array(
+              'sequential' => 1,
+            ));
+  foreach($tagsGet['values'] as $tagIds => $tagsValues) {
+    $tags[$tagsValues['id']] = $tagsValues['name'];
+  }
+  $mcClient = new Mailchimp($apiKey);
+  $mcLists = new Mailchimp_Lists($mcClient);
+  $lists = $mcLists->getList();
+  foreach($lists['data'] as $listsDetails) {
+    if(!in_array($listsDetails['name'], $tags)) {
+      $tagsCreate = civicrm_api3('Tag', 'create', array(
+                      'sequential' => 1,
+                      'name' => $listsDetails['name'],
+                    ));
+    }
+    $tagsGet = civicrm_api3('Tag', 'get', array(
+                 'sequential' => 1,
+               ));
+    foreach($tagsGet['values'] as $tagIds => $tagsValues) {
+      $tags[$tagsValues['id']] = $tagsValues['name'];
+    }
+    if(in_array($listsDetails['name'], $tags)) {
+      $keyTags = array_search($listsDetails['name'], $tags);
+      $members = $mcLists->members($listsDetails['id']);
+      foreach($members['data'] as $key => $value) {
+        try {
+          $createdContact = civicrm_api3('Contact', 'create', array(
+                              'sequential' => 1,
+                              'contact_type' => "Individual",
+                              'first_name' => $value['merges']['FNAME'],
+                              'last_name' => $value['merges']['LNAME'],
+                              'email' => $value['merges']['EMAIL'],
+                              'api.EntityTag.create' => array(
+                                'entity_id' => "\$value.id",
+                                'entity_table' => "civicrm_contact",
+                                'tag_id' => $keyTags
+                              ),
+                              'dupe_check' => true,
+                            ));
+        } catch (CiviCRM_API3_Exception $e) {
+          $result = civicrm_api3('EntityTag', 'create', array(
+                        'contact_id' => $e->getExtraParams()['ids'][0],
+                        'tag_id' => $keyTags,
+                    ));
+        }
+      }
+    }
+  }
+  return civicrm_api3_create_success();
+}
