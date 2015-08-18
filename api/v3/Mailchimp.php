@@ -39,6 +39,7 @@ function civicrm_api3_mailchimp_synchronize( $params ) {
       $memberCount = $mcLists->members($listsDetails['id']);
       $pointer = $memberCount['total']/100;
       $iteration = ceil($pointer);
+      ini_set('max_execution_time', 3600);
       for($i = 0;$i < $iteration;$i++) {
         $members = $mcLists->members($listsDetails['id'],'subscribed',array('start'=> $i,'limit' => 100));
         foreach($members['data'] as $key => $value) {
