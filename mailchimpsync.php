@@ -30,6 +30,13 @@ function mailchimpsync_civicrm_xmlMenu(&$files) {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_install
  */
 function mailchimpsync_civicrm_install() {
+  $query = "CREATE TABLE `civicrm_mailchimp` (
+     `list_id` varchar(255) NOT NULL   COMMENT 'List Id',
+     `last_synced` datetime DEFAULT NULL  COMMENT 'Last Synced Members Date',
+     PRIMARY KEY ( `list_id` )
+     ) ENGINE=InnoDB DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+    ";
+  $result = CRM_Core_DAO::executeQuery($query);
   // Create a cron job to do sync data between CiviCRM and MailChimp.
   $params = array(
     'sequential' => 1,
@@ -75,6 +82,9 @@ function mailchimpsync_civicrm_navigationMenu( &$params ) {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_uninstall
  */
 function mailchimpsync_civicrm_uninstall() {
+  $query = "DROP TABLE IF EXISTS `civicrm_mailchimp`;
+    ";
+  $result = CRM_Core_DAO::executeQuery($query);
   $job = civicrm_api3('Job', 'get', array(
            'sequential' => 1,
            'name' => "CiviCRM Mailchimp Sync",
@@ -85,6 +95,9 @@ function mailchimpsync_civicrm_uninstall() {
                     'id' => $value['id'],
                   ));
   }
+  $sql = "DELETE FROM `civicrm_setting` WHERE `name` = 'api_key'";
+  CRM_Core_DAO::executeQuery($sql);
+
   return _mailchimpsync_civix_civicrm_uninstall();
 }
 
