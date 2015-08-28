@@ -890,6 +890,16 @@ consider using lists/batch-subscribe() with the update_existing and possible rep
         return $this->master->call('lists/list', $_params);
     }
 
+    /**
+     * Export all members for a list
+     * @param string $id
+     * @status string The subscription status for this email addresses, either , subscribed, unsubscribed, or cleaned
+     * default value is subscribed
+     * @return array of member records. The first record lists the order of fields. Each
+     * subsequent record describes a member of the list
+     */
+    public function export($id, $status='subscribed', $since) {
+      $_params = array("id" => $id, "status" => $status, "since" => $since );
+      return $this->master->call('list/', $_params, true);
+    }
 }
-
-
